@@ -7,7 +7,7 @@ const SafeAreaView = styled(RNSafeAreaView);
 const Subcriptions = () => {
   return (
     <SafeAreaView className="flex-1 bg-background p-5">
-      <Text>subcriptions</Text>
+      <Text>subscriptions</Text>
     </SafeAreaView>
   );
 };
