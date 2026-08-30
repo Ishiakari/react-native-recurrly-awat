@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "target": "es2020",
+    "jsx": "react-native",
+    "allowSyntheticDefaultImports": true
+  },
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js"]
+}
