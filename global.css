@@ -259,39 +259,39 @@
   }
 
   .auth-wordmark {
-    @apply text-3xl font-sans-extrabold text-primary;
+    @apply text-3xl font-sans-extrabold text-primary tracking-tight;
   }
 
   .auth-wordmark-sub {
-    @apply -mt-1 text-xs font-sans-semibold uppercase tracking-[1px] text-muted-foreground;
+    @apply mt-1.5 text-[11px] font-sans-bold uppercase tracking-[1.5px] text-muted-foreground;
   }
 
   .auth-title {
-    @apply text-3xl font-sans-bold text-primary;
+    @apply text-[28px] font-sans-bold text-primary tracking-tight;
   }
 
   .auth-subtitle {
-    @apply mt-2 max-w-[320px] text-center text-base font-sans-medium text-muted-foreground;
+    @apply mt-2.5 max-w-[320px] text-center text-sm font-sans-medium text-muted-foreground leading-relaxed;
   }
 
   .auth-card {
-    @apply mt-8 rounded-3xl border border-border bg-card p-5;
+    @apply mt-7 rounded-3xl border border-border bg-card p-6;
   }
 
   .auth-form {
-    @apply gap-4;
+    @apply gap-5;
   }
 
   .auth-field {
-    @apply gap-2;
+    @apply gap-2.5;
   }
 
   .auth-label {
-    @apply text-sm font-sans-semibold text-primary;
+    @apply text-sm font-sans-semibold text-primary tracking-wide;
   }
 
   .auth-input {
-    @apply rounded-2xl border border-border bg-background px-4 py-4 text-base font-sans-medium text-primary;
+    @apply rounded-2xl border border-border bg-background px-4 py-3.5 text-sm font-sans-medium text-primary;
   }
 
   .auth-input-error {
@@ -315,7 +315,7 @@
   }
 
   .auth-button-text {
-    @apply text-base font-sans-bold text-primary;
+    @apply text-base font-sans-bold text-white;
   }
 
   .auth-secondary-button {
