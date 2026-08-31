@@ -1,3 +1,4 @@
+import { posthog } from "@/lib/posthog";
 import { icons } from "@/app/constants/icons";
 import clsx from "clsx";
 import dayjs from "dayjs";
@@ -99,6 +100,12 @@ export default function CreateSubscriptionModal({
       color: getCategoryColor(category),
     };
 
+    posthog?.capture("subscription_created", {
+      subscription_name: trimmedName,
+      subscription_price: parsedPrice,
+      subscription_frequency: frequency,
+      subscription_category: category,
+    });
     onSubmit(newSubscription);
     handleClose();
   };
@@ -173,13 +180,13 @@ export default function CreateSubscriptionModal({
                     onPress={() => setFrequency("Monthly")}
                     className={clsx(
                       "picker-option",
-                      frequency === "Monthly" && "picker-option-active"
+                      frequency === "Monthly" && "picker-option-active",
                     )}
                   >
                     <Text
                       className={clsx(
                         "picker-option-text",
-                        frequency === "Monthly" && "picker-option-text-active"
+                        frequency === "Monthly" && "picker-option-text-active",
                       )}
                     >
                       Monthly
@@ -189,13 +196,13 @@ export default function CreateSubscriptionModal({
                     onPress={() => setFrequency("Yearly")}
                     className={clsx(
                       "picker-option",
-                      frequency === "Yearly" && "picker-option-active"
+                      frequency === "Yearly" && "picker-option-active",
                     )}
                   >
                     <Text
                       className={clsx(
                         "picker-option-text",
-                        frequency === "Yearly" && "picker-option-text-active"
+                        frequency === "Yearly" && "picker-option-text-active",
                       )}
                     >
                       Yearly
@@ -216,13 +223,13 @@ export default function CreateSubscriptionModal({
                         onPress={() => setCategory(cat)}
                         className={clsx(
                           "category-chip",
-                          isSelected && "category-chip-active"
+                          isSelected && "category-chip-active",
                         )}
                       >
                         <Text
                           className={clsx(
                             "category-chip-text",
-                            isSelected && "category-chip-text-active"
+                            isSelected && "category-chip-text-active",
                           )}
                         >
                           {cat}
@@ -239,7 +246,7 @@ export default function CreateSubscriptionModal({
                 onPress={handleSubmit}
                 className={clsx(
                   "auth-button mt-2",
-                  !isValid && "auth-button-disabled"
+                  !isValid && "auth-button-disabled",
                 )}
               >
                 <Text className="auth-button-text">Add Subscription</Text>
@@ -251,4 +258,3 @@ export default function CreateSubscriptionModal({
     </Modal>
   );
 }
-
