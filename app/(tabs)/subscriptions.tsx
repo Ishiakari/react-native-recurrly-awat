@@ -67,7 +67,7 @@ const Subscriptions = () => {
 
       return item.category?.toLowerCase() === selectedFilter;
     });
-  }, [searchQuery, selectedFilter]);
+  }, [subscriptions, searchQuery, selectedFilter]);
 
   const handleCardPress = (item: Subscription) => {
     const isExpanding = expandedId !== item.id;

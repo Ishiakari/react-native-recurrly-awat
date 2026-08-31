@@ -80,17 +80,19 @@ function AuthGate() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: "#fff9e3" },
-      }}
-    >
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-      <Stack.Screen name="subscriptions/[id]" options={{ headerShown: false }} />
-    </Stack>
+    <SubscriptionsProvider key={user?.id || "anonymous"}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: "#fff9e3" },
+        }}
+      >
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="subscriptions/[id]" options={{ headerShown: false }} />
+      </Stack>
+    </SubscriptionsProvider>
   );
 }
 
@@ -125,11 +127,7 @@ export default function RootLayout() {
     );
   }
 
-  const app = (
-    <SubscriptionsProvider>
-      <AuthGate />
-    </SubscriptionsProvider>
-  );
+  const app = <AuthGate />;
 
   return (
     <ClerkProvider publishableKey={publishableKey!} tokenCache={tokenCache}>
