@@ -51,71 +51,75 @@ const SubscriptionCard = ({
       </View>
 
       {expanded && (
-        <View className="sub-bdy">
-          <View className="sub-details">
-            <View className="sub-row">
-              <View className="sub-row-copy">
-                <Text className="sub-label">Payment:</Text>
-                <Text
-                  className="sub-value"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {paymentMethod?.trim() ?? "Not provided"}
-                </Text>
-              </View>
+        <View className="mt-4 pt-4 border-t border-black/10 gap-3">
+          <View className="gap-3">
+            <View className="flex-row items-center justify-between gap-4">
+              <Text className="shrink-0 text-sm font-sans-medium text-muted-foreground">
+                Payment:
+              </Text>
+              <Text
+                className="flex-1 text-right text-sm font-sans-bold text-primary"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {paymentMethod?.trim() ?? "Not provided"}
+              </Text>
             </View>
-            <View className="sub-row">
-              <View className="sub-row-copy">
-                <Text className="sub-label">Category:</Text>
-                <Text
-                  className="sub-value"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {(category?.trim() || plan?.trim()) ?? "Not provided"}
-                </Text>
-              </View>
+
+            <View className="flex-row items-center justify-between gap-4">
+              <Text className="shrink-0 text-sm font-sans-medium text-muted-foreground">
+                Category:
+              </Text>
+              <Text
+                className="flex-1 text-right text-sm font-sans-bold text-primary"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {(category?.trim() || plan?.trim()) ?? "Not provided"}
+              </Text>
             </View>
-            <View className="sub-row">
-              <View className="sub-row-copy">
-                <Text className="sub-label">Started:</Text>
-                <Text
-                  className="sub-value"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {startDate
-                    ? formatSubscriptionDateTime(startDate)
-                    : "Not provided"}
-                </Text>
-              </View>
+
+            <View className="flex-row items-center justify-between gap-4">
+              <Text className="shrink-0 text-sm font-sans-medium text-muted-foreground">
+                Started:
+              </Text>
+              <Text
+                className="flex-1 text-right text-sm font-sans-bold text-primary"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {startDate
+                  ? formatSubscriptionDateTime(startDate)
+                  : "Not provided"}
+              </Text>
             </View>
-            <View className="sub-row">
-              <View className="sub-row-copy">
-                <Text className="sub-label">Renewal date:</Text>
-                <Text
-                  className="sub-value"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {renewalDate
-                    ? formatSubscriptionDateTime(renewalDate)
-                    : "Not provided"}
-                </Text>
-              </View>
+
+            <View className="flex-row items-center justify-between gap-4">
+              <Text className="shrink-0 text-sm font-sans-medium text-muted-foreground">
+                Renewal date:
+              </Text>
+              <Text
+                className="flex-1 text-right text-sm font-sans-bold text-primary"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {renewalDate
+                  ? formatSubscriptionDateTime(renewalDate)
+                  : "Not provided"}
+              </Text>
             </View>
-            <View className="sub-row">
-              <View className="sub-row-copy">
-                <Text className="sub-label">Status:</Text>
-                <Text
-                  className="sub-value"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {status ? formatStatusLabel(status) : "Not provided"}
-                </Text>
-              </View>
+
+            <View className="flex-row items-center justify-between gap-4">
+              <Text className="shrink-0 text-sm font-sans-medium text-muted-foreground">
+                Status:
+              </Text>
+              <Text
+                className="flex-1 text-right text-sm font-sans-bold text-primary"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {status ? formatStatusLabel(status) : "Not provided"}
+              </Text>
             </View>
           </View>
         </View>

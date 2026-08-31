@@ -6,6 +6,7 @@ import { PostHogErrorBoundary, PostHogProvider } from "posthog-react-native";
 import React, { useEffect, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { posthog } from "@/lib/posthog";
+import { SubscriptionsProvider } from "@/context/SubscriptionsContext";
 import "../global.css";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -124,10 +125,14 @@ export default function RootLayout() {
     );
   }
 
-  const app = <AuthGate />;
+  const app = (
+    <SubscriptionsProvider>
+      <AuthGate />
+    </SubscriptionsProvider>
+  );
 
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+    <ClerkProvider publishableKey={publishableKey!} tokenCache={tokenCache}>
       {posthog ? (
         <PostHogProvider client={posthog}>
           <PostHogErrorBoundary
