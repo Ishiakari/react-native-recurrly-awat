@@ -1,5 +1,6 @@
 import { colors } from "@/app/constants/theme";
 import images from "@/app/constants/images";
+import { getUserDisplayName } from "@/lib/utils";
 import { useAuth, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,9 +26,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
 
-  const displayName = user?.firstName
-    ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ""}`
-    : "Recurrly Member";
+  const displayName = getUserDisplayName(user, "Recurrly Member");
   const userEmail = user?.emailAddresses?.[0]?.emailAddress || "No email linked";
 
   const handleSignOut = () => {
@@ -52,6 +51,14 @@ export default function SettingsScreen() {
           },
         },
       ]
+    );
+  };
+
+  const handleSecurityPress = () => {
+    Alert.alert(
+      "Security & Biometrics",
+      "Biometric app lock (Face ID / Fingerprint) is synced with your device security settings.",
+      [{ text: "OK", style: "default" }]
     );
   };
 
@@ -134,7 +141,10 @@ export default function SettingsScreen() {
               <Text className="font-sans-bold text-sm text-primary">USD ($)</Text>
             </View>
 
-            <View className="flex-row items-center justify-between p-4">
+            <Pressable
+              onPress={handleSecurityPress}
+              className="flex-row items-center justify-between p-4 active:bg-muted/40"
+            >
               <View className="flex-row items-center gap-3">
                 <View className="size-10 rounded-2xl bg-primary/10 items-center justify-center">
                   <Ionicons name="shield-checkmark-outline" size={19} color={colors.primary} />
@@ -147,7 +157,7 @@ export default function SettingsScreen() {
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
-            </View>
+            </Pressable>
           </View>
         </View>
 

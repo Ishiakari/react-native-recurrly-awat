@@ -105,18 +105,57 @@ export default function SignUpScreen() {
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : undefined;
 
     try {
-      const createPayload: Record<string, any> = {
+      const createPayload: Parameters<typeof signUp.create>[0] = {
         emailAddress: emailAddress.trim(),
         password,
       };
       if (firstName) createPayload.firstName = firstName;
       if (lastName) createPayload.lastName = lastName;
 
-      const signUpAttempt = await signUp.create(createPayload);
+      let signUpAttempt = await signUp.create(createPayload);
 
       if (signUpAttempt.status === "complete" && signUpAttempt.createdSessionId) {
         await setActive({ session: signUpAttempt.createdSessionId });
         return;
+      }
+
+      // Inspect missing requirements before preparing email verification
+      const missing = signUpAttempt.missingFields || [];
+      const supportedFields = ["first_name", "last_name", "email_address", "password"];
+      const unsupportedFields = missing.filter((field) => !supportedFields.includes(field));
+
+      if (unsupportedFields.length > 0) {
+        setErrorMsg(
+          `Sign up configuration error: Unsupported required fields (${unsupportedFields.join(
+            ", "
+          )}). Please check your account settings.`
+        );
+        return;
+      }
+
+      // Collect any missing supported fields via signUp.update()
+      const updatePayload: Parameters<typeof signUp.update>[0] = {};
+      if (missing.includes("first_name") && firstName) {
+        updatePayload.firstName = firstName;
+      }
+      if (missing.includes("last_name") && lastName) {
+        updatePayload.lastName = lastName;
+      }
+
+      if (Object.keys(updatePayload).length > 0) {
+        signUpAttempt = await signUp.update(updatePayload);
+        const remainingMissing = signUpAttempt.missingFields || [];
+        const remainingUnsupported = remainingMissing.filter(
+          (field) => !supportedFields.includes(field)
+        );
+        if (remainingUnsupported.length > 0) {
+          setErrorMsg(
+            `Sign up configuration error: Unsupported required fields (${remainingUnsupported.join(
+              ", "
+            )}).`
+          );
+          return;
+        }
       }
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });

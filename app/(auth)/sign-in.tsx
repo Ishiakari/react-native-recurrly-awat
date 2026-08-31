@@ -25,7 +25,11 @@ export default function SignInScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+    mfaCode?: string;
+  }>({});
 
   // Forgot password flow state
   const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -34,6 +38,12 @@ export default function SignInScreen() {
   const [newPassword, setNewPassword] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSuccessMsg, setResetSuccessMsg] = useState<string | null>(null);
+
+  // MFA second-factor flow state
+  const [isMfaRequired, setIsMfaRequired] = useState(false);
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaStrategy, setMfaStrategy] = useState<string>("phone_code");
+  const [mfaLoading, setMfaLoading] = useState(false);
 
   const validateForm = () => {
     const errors: { email?: string; password?: string } = {};
@@ -78,10 +88,24 @@ export default function SignInScreen() {
 
       if (result.status === "complete" && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
+      } else if (result.status === "needs_second_factor") {
+        const secondFactor =
+          result.supportedSecondFactors?.find(
+            (factor) => factor.strategy === "phone_code" || factor.strategy === "email_code"
+          ) || result.supportedSecondFactors?.[0];
+
+        const strategy = (secondFactor?.strategy || "phone_code") as any;
+        setMfaStrategy(strategy);
+
+        if (strategy === "phone_code" || strategy === "email_code") {
+          await signIn.prepareSecondFactor({ strategy });
+        }
+
+        setIsMfaRequired(true);
       } else {
-        // Fallback for multi-factor or secondary steps if configured
+        // Fallback for unsupported or incomplete steps
         console.log("Sign-in requires additional verification:", result.status);
-        setErrorMsg("Additional verification required. Please check your email.");
+        setErrorMsg("Additional verification required. Please check your account.");
       }
     } catch (err: any) {
       console.error("Sign in error:", err);
@@ -92,6 +116,44 @@ export default function SignInScreen() {
       setErrorMsg(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerifyMfa = async () => {
+    if (!isLoaded) {
+      setErrorMsg("Authentication is still initializing. Please wait a moment.");
+      return;
+    }
+    if (mfaLoading) return;
+    setErrorMsg(null);
+
+    if (!mfaCode.trim()) {
+      setFieldErrors({ mfaCode: "Please enter the verification code" });
+      return;
+    }
+
+    setMfaLoading(true);
+
+    try {
+      const result = await signIn.attemptSecondFactor({
+        strategy: mfaStrategy as any,
+        code: mfaCode.trim(),
+      });
+
+      if (result.status === "complete" && result.createdSessionId) {
+        await setActive({ session: result.createdSessionId });
+      } else {
+        setErrorMsg(`Verification incomplete. Status: ${result.status}`);
+      }
+    } catch (err: any) {
+      console.error("MFA verification error:", err);
+      const message =
+        err?.errors?.[0]?.longMessage ||
+        err?.errors?.[0]?.message ||
+        "Invalid verification code. Please check and try again.";
+      setErrorMsg(message);
+    } finally {
+      setMfaLoading(false);
     }
   };
 
@@ -188,13 +250,19 @@ export default function SignInScreen() {
               </View>
 
               <Text className="auth-title">
-                {isResettingPassword ? "Reset password" : "Welcome back"}
+                {isResettingPassword
+                  ? "Reset password"
+                  : isMfaRequired
+                  ? "Two-factor check"
+                  : "Welcome back"}
               </Text>
               <Text className="auth-subtitle">
                 {isResettingPassword
                   ? resetCodeSent
                     ? "Enter the code sent to your email to set a new password"
                     : "Enter your account email and we'll send you recovery instructions"
+                  : isMfaRequired
+                  ? "Enter the security code to complete sign in"
                   : "Sign in to continue managing your subscriptions"}
               </Text>
             </View>
@@ -221,7 +289,75 @@ export default function SignInScreen() {
 
             {/* Form Card */}
             <View className="auth-card shadow-sm">
-              {!isResettingPassword ? (
+              {isMfaRequired ? (
+                /* Two-Factor Authentication Form */
+                <View className="auth-form">
+                  <View className="items-center py-2">
+                    <View className="size-14 items-center justify-center rounded-2xl bg-accent/15 mb-2">
+                      <Ionicons name="key" size={26} color={colors.accent} />
+                    </View>
+                    <Text className="font-sans-bold text-base text-primary">
+                      Two-Factor Verification
+                    </Text>
+                  </View>
+
+                  <View className="auth-field">
+                    <Text className="auth-label">Security Code</Text>
+                    <TextInput
+                      className={`auth-input tracking-widest text-2xl font-sans-bold ${
+                        fieldErrors.mfaCode ? "auth-input-error" : ""
+                      }`}
+                      style={{ textAlign: "center" }}
+                      placeholder="000000"
+                      placeholderTextColor="rgba(8, 17, 38, 0.35)"
+                      value={mfaCode}
+                      onChangeText={(text) => {
+                        setMfaCode(text);
+                        if (fieldErrors.mfaCode) {
+                          setFieldErrors((prev) => ({ ...prev, mfaCode: undefined }));
+                        }
+                      }}
+                      keyboardType="number-pad"
+                      maxLength={6}
+                      autoFocus
+                      editable={!mfaLoading}
+                    />
+                    {fieldErrors.mfaCode && (
+                      <Text className="auth-error text-center">{fieldErrors.mfaCode}</Text>
+                    )}
+                  </View>
+
+                  <Pressable
+                    onPress={handleVerifyMfa}
+                    disabled={mfaLoading}
+                    className={`auth-button shadow-sm active:opacity-90 ${
+                      mfaLoading ? "auth-button-disabled" : ""
+                    }`}
+                  >
+                    {mfaLoading ? (
+                      <View className="flex-row items-center gap-2">
+                        <ActivityIndicator color="#ffffff" size="small" />
+                        <Text className="auth-button-text">Verifying code...</Text>
+                      </View>
+                    ) : (
+                      <Text className="auth-button-text">Verify & sign in</Text>
+                    )}
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => {
+                      setIsMfaRequired(false);
+                      setMfaCode("");
+                      setErrorMsg(null);
+                    }}
+                    className="items-center py-2"
+                  >
+                    <Text className="font-sans-semibold text-sm text-primary">
+                      Back to Sign In
+                    </Text>
+                  </Pressable>
+                </View>
+              ) : !isResettingPassword ? (
                 /* Standard Sign In Form */
                 <View className="auth-form">
                   {/* Email Field */}
@@ -434,7 +570,7 @@ export default function SignInScreen() {
             </View>
 
             {/* Bottom Navigation Link */}
-            {!isResettingPassword && (
+            {!isResettingPassword && !isMfaRequired && (
               <View className="auth-link-row">
                 <Text className="auth-link-copy">New to Recurrly?</Text>
                 <Link href="/(auth)/sign-up" asChild>

@@ -25,3 +25,17 @@ export const formatStatusLabel = (value?: string): string => {
   if (!value) return "Unknown";
   return value.charAt(0).toUpperCase() + value.slice(1);
 };
+
+export const getUserDisplayName = (
+  user?: {
+    firstName?: string | null;
+    lastName?: string | null;
+    emailAddresses?: Array<{ emailAddress: string }>;
+  } | null,
+  fallback = "Recurrly Member"
+): string => {
+  if (user?.firstName) {
+    return `${user.firstName}${user.lastName ? ` ${user.lastName}` : ""}`;
+  }
+  return user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || fallback;
+};

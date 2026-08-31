@@ -1,7 +1,7 @@
 import ListHeading from "@/components/ListHeading";
 import SubscriptionCard from "@/components/SubscriptionCard";
 import UpcomingSubscription from "@/components/UpcomingSubscription";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getUserDisplayName } from "@/lib/utils";
 import dayjs from "dayjs";
 import { styled } from "nativewind";
 import { useUser } from "@clerk/expo";
@@ -25,9 +25,7 @@ export default function App() {
   const { user } = useUser();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const displayName = user?.firstName
-    ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ""}`
-    : user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || HOME_USER.name;
+  const displayName = getUserDisplayName(user, HOME_USER.name);
 
   return (
     <SafeAreaView className="flex-1 bg-background p-5">
