@@ -1,9 +1,11 @@
-import { ClerkProvider, useAuth } from "@clerk/expo";
+import { ClerkProvider, useAuth, useUser } from "@clerk/expo";
 import { tokenCache } from "@/lib/tokenCache";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack, useRouter, useSegments } from "expo-router";
-import React, { useEffect } from "react";
+import { PostHogErrorBoundary, PostHogProvider } from "posthog-react-native";
+import React, { useEffect, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { posthog } from "@/lib/posthog";
 import "../global.css";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -19,8 +21,34 @@ if (!publishableKey) {
 
 function AuthGate() {
   const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
+  const identifiedUserId = useRef<string | null | undefined>(undefined);
   const segments = useSegments();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    if (!isSignedIn || !user?.id) {
+      if (identifiedUserId.current !== null) {
+        posthog?.reset();
+        identifiedUserId.current = null;
+      }
+      return;
+    }
+
+    if (identifiedUserId.current === user.id) return;
+
+    const personProperties: Record<string, string> = {};
+    const email = user.primaryEmailAddress?.emailAddress;
+    const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
+
+    if (email) personProperties.email = email;
+    if (name) personProperties.name = name;
+
+    posthog?.identify(user.id, { $set: personProperties });
+    identifiedUserId.current = user.id;
+  }, [isLoaded, isSignedIn, user]);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -96,9 +124,32 @@ export default function RootLayout() {
     );
   }
 
+  const app = <AuthGate />;
+
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <AuthGate />
+      {posthog ? (
+        <PostHogProvider client={posthog}>
+          <PostHogErrorBoundary
+            fallback={() => (
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: "#fff9e3",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <ActivityIndicator color="#ea7a53" size="large" />
+              </View>
+            )}
+          >
+            {app}
+          </PostHogErrorBoundary>
+        </PostHogProvider>
+      ) : (
+        app
+      )}
     </ClerkProvider>
   );
 }

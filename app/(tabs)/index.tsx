@@ -1,6 +1,7 @@
 import ListHeading from "@/components/ListHeading";
 import SubscriptionCard from "@/components/SubscriptionCard";
 import UpcomingSubscription from "@/components/UpcomingSubscription";
+import { posthog } from "@/lib/posthog";
 import { formatCurrency, getUserDisplayName } from "@/lib/utils";
 import dayjs from "dayjs";
 import { styled } from "nativewind";
@@ -81,9 +82,19 @@ export default function App() {
           <SubscriptionCard
             {...item}
             expanded={expandedId === item.id}
-            onPress={() =>
-              setExpandedId(expandedId === item.id ? null : item.id)
-            }
+            onPress={() => {
+              const isExpanding = expandedId !== item.id;
+              setExpandedId(isExpanding ? item.id : null);
+
+              if (isExpanding) {
+                posthog?.capture("subscription_details_expanded", {
+                  subscription_id: item.id,
+                  ...(item.category ? { category: item.category } : {}),
+                  ...(item.billing ? { billing_interval: item.billing } : {}),
+                  ...(item.status ? { status: item.status } : {}),
+                });
+              }
+            }}
           />
         )}
         extraData={expandedId}

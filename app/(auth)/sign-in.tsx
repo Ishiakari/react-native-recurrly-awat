@@ -1,4 +1,5 @@
 import { colors } from "@/app/constants/theme";
+import { posthog } from "@/lib/posthog";
 import { formatCurrency } from "@/lib/utils";
 import { useSignIn } from "@clerk/expo/legacy";
 import { Ionicons } from "@expo/vector-icons";
@@ -88,6 +89,7 @@ export default function SignInScreen() {
 
       if (result.status === "complete" && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
+        posthog?.capture("user_signed_in", { authentication_method: "password" });
       } else if (result.status === "needs_second_factor") {
         const secondFactor =
           result.supportedSecondFactors?.find(
@@ -142,6 +144,7 @@ export default function SignInScreen() {
 
       if (result.status === "complete" && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
+        posthog?.capture("user_signed_in", { authentication_method: "mfa" });
       } else {
         setErrorMsg(`Verification incomplete. Status: ${result.status}`);
       }
@@ -173,6 +176,7 @@ export default function SignInScreen() {
         identifier: emailAddress.trim(),
       });
       setResetCodeSent(true);
+      posthog?.capture("password_reset_requested");
       setResetSuccessMsg(`We sent a password reset code to ${emailAddress.trim()}`);
     } catch (err: any) {
       const message =
@@ -209,6 +213,8 @@ export default function SignInScreen() {
 
       if (result.status === "complete" && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
+        posthog?.capture("password_reset_completed");
+        posthog?.capture("user_signed_in", { authentication_method: "password_reset" });
       } else {
         setErrorMsg("Password reset incomplete. Please try again.");
       }

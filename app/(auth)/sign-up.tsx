@@ -1,4 +1,5 @@
 import { colors } from "@/app/constants/theme";
+import { posthog } from "@/lib/posthog";
 import { useSignUp, useSignIn } from "@clerk/expo/legacy";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
@@ -116,6 +117,7 @@ export default function SignUpScreen() {
 
       if (signUpAttempt.status === "complete" && signUpAttempt.createdSessionId) {
         await setActive({ session: signUpAttempt.createdSessionId });
+        posthog?.capture("user_signed_up", { verification_required: false });
         return;
       }
 
@@ -193,6 +195,7 @@ export default function SignUpScreen() {
       if (result.status === "complete") {
         if (result.createdSessionId) {
           await setActive({ session: result.createdSessionId });
+          posthog?.capture("user_signed_up", { verification_required: true });
         }
         return;
       }
@@ -227,6 +230,7 @@ export default function SignUpScreen() {
           });
           if (signInAttempt.status === "complete" && signInAttempt.createdSessionId) {
             await setActive({ session: signInAttempt.createdSessionId });
+            posthog?.capture("user_signed_up", { verification_required: true });
             return;
           }
         } catch (signInErr: any) {
@@ -253,6 +257,7 @@ export default function SignUpScreen() {
 
     try {
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      posthog?.capture("email_verification_resent");
       setResendCooldown(30);
     } catch (err: any) {
       const message =
