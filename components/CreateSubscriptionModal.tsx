@@ -58,9 +58,13 @@ export default function CreateSubscriptionModal({
   const [category, setCategory] =
     useState<SubscriptionCategory>("Entertainment");
 
-  const parsedPrice = parseFloat(price);
-  const isValid =
-    name.trim().length > 0 && !isNaN(parsedPrice) && parsedPrice > 0;
+  const trimmedName = name.trim();
+  const trimmedPrice = price.trim();
+  const isNumericPrice =
+    trimmedPrice.length > 0 &&
+    !isNaN(Number(trimmedPrice)) &&
+    Number(trimmedPrice) > 0;
+  const isValid = trimmedName.length > 0 && isNumericPrice;
 
   const handleClose = () => {
     setName("");
@@ -73,6 +77,7 @@ export default function CreateSubscriptionModal({
   const handleSubmit = () => {
     if (!isValid) return;
 
+    const parsedPrice = Number(trimmedPrice);
     const startDate = dayjs().toISOString();
     const renewalDate = dayjs()
       .add(1, frequency === "Yearly" ? "year" : "month")
@@ -80,7 +85,7 @@ export default function CreateSubscriptionModal({
 
     const newSubscription: Subscription = {
       id: `sub-${Date.now()}`,
-      name: name.trim(),
+      name: trimmedName,
       price: parsedPrice,
       billing: frequency,
       plan: `${frequency} Plan`,
