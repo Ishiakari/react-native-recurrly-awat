@@ -43,9 +43,9 @@ export default function SettingsScreen() {
             setSigningOut(true);
             try {
               await signOut();
-              router.replace("/(auth)/sign-in");
             } catch (err) {
               console.error("Sign out error:", err);
+              Alert.alert("Sign Out Failed", "Unable to complete sign out. Please try again.");
             } finally {
               setSigningOut(false);
             }

@@ -13,6 +13,12 @@ const publishableKey =
   process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ||
   "pk_test_ZGVzdGluZWQtcmFiYml0LTg1NTMuY2xlcmsuYWNjb3VudHMuZGV2JA";
 
+if (!publishableKey) {
+  throw new Error(
+    "Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY. Please set this in your environment variables or .env file."
+  );
+}
+
 function AuthGate() {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
@@ -22,8 +28,9 @@ function AuthGate() {
     if (!isLoaded) return;
 
     const inAuthGroup = segments[0] === "(auth)";
+    const isPublicSegment = segments[0] === "onboarding";
 
-    if (!isSignedIn && !inAuthGroup) {
+    if (!isSignedIn && !inAuthGroup && !isPublicSegment) {
       router.replace("/(auth)/sign-in");
     } else if (isSignedIn && inAuthGroup) {
       router.replace("/(tabs)");

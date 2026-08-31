@@ -50,11 +50,20 @@ export default function SignInScreen() {
     }
 
     setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      setErrorMsg(firstError || "Please check your inputs and try again.");
+      return false;
+    }
+    return true;
   };
 
   const handleSignIn = async () => {
-    if (!isLoaded || loading) return;
+    if (!isLoaded) {
+      setErrorMsg("Authentication is still initializing. Please wait a moment.");
+      return;
+    }
+    if (loading) return;
     setErrorMsg(null);
 
     if (!validateForm()) return;
@@ -67,9 +76,8 @@ export default function SignInScreen() {
         password,
       });
 
-      if (result.status === "complete") {
+      if (result.status === "complete" && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
-        router.replace("/(tabs)");
       } else {
         // Fallback for multi-factor or secondary steps if configured
         console.log("Sign-in requires additional verification:", result.status);
@@ -137,9 +145,8 @@ export default function SignInScreen() {
         password: newPassword,
       });
 
-      if (result.status === "complete") {
+      if (result.status === "complete" && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
-        router.replace("/(tabs)");
       } else {
         setErrorMsg("Password reset incomplete. Please try again.");
       }
@@ -309,7 +316,7 @@ export default function SignInScreen() {
                   {/* Submit Button */}
                   <Pressable
                     onPress={handleSignIn}
-                    disabled={loading || !isLoaded}
+                    disabled={loading}
                     className={`auth-button shadow-sm active:opacity-90 ${
                       loading ? "auth-button-disabled" : ""
                     }`}

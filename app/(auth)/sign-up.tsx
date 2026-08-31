@@ -73,33 +73,51 @@ export default function SignUpScreen() {
       errors.password = "Password must be at least 8 characters long";
     }
 
-    if (password !== confirmPassword) {
+    if (!confirmPassword) {
+      errors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
       errors.confirmPassword = "Passwords do not match";
     }
 
     setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      setErrorMsg(firstError || "Please check your inputs and try again.");
+      return false;
+    }
+    return true;
   };
 
   const handleSignUp = async () => {
-    if (!isLoaded || loading) return;
+    if (!isLoaded) {
+      setErrorMsg("Authentication is still initializing. Please wait a moment.");
+      return;
+    }
+    if (loading) return;
     setErrorMsg(null);
 
     if (!validateSignUpForm()) return;
 
     setLoading(true);
 
-    const nameParts = fullName.trim().split(" ");
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.slice(1).join(" ") || "";
+    const nameParts = fullName.trim().split(/\s+/);
+    const firstName = nameParts[0] || undefined;
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : undefined;
 
     try {
-      await signUp.create({
+      const createPayload: Record<string, any> = {
         emailAddress: emailAddress.trim(),
         password,
-        firstName,
-        lastName,
-      });
+      };
+      if (firstName) createPayload.firstName = firstName;
+      if (lastName) createPayload.lastName = lastName;
+
+      const signUpAttempt = await signUp.create(createPayload);
+
+      if (signUpAttempt.status === "complete" && signUpAttempt.createdSessionId) {
+        await setActive({ session: signUpAttempt.createdSessionId });
+        return;
+      }
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
@@ -109,6 +127,7 @@ export default function SignUpScreen() {
       const message =
         err?.errors?.[0]?.longMessage ||
         err?.errors?.[0]?.message ||
+        err?.message ||
         "Failed to create account. Please check the details and try again.";
       setErrorMsg(message);
     } finally {
@@ -136,7 +155,6 @@ export default function SignUpScreen() {
         if (result.createdSessionId) {
           await setActive({ session: result.createdSessionId });
         }
-        router.replace("/(tabs)");
         return;
       }
 
@@ -170,7 +188,6 @@ export default function SignUpScreen() {
           });
           if (signInAttempt.status === "complete" && signInAttempt.createdSessionId) {
             await setActive({ session: signInAttempt.createdSessionId });
-            router.replace("/(tabs)");
             return;
           }
         } catch (signInErr: any) {
@@ -443,7 +460,7 @@ export default function SignUpScreen() {
                   {/* Submit Button */}
                   <Pressable
                     onPress={handleSignUp}
-                    disabled={loading || !isLoaded}
+                    disabled={loading}
                     className={`auth-button shadow-sm active:opacity-90 ${
                       loading ? "auth-button-disabled" : ""
                     }`}
