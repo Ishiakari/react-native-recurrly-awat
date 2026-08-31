@@ -1,5 +1,6 @@
 import { colors } from "@/app/constants/theme";
 import images from "@/app/constants/images";
+import { posthog } from "@/lib/posthog";
 import { getUserDisplayName } from "@/lib/utils";
 import { useAuth, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
@@ -41,6 +42,7 @@ export default function SettingsScreen() {
           onPress: async () => {
             setSigningOut(true);
             try {
+              posthog?.capture("user_signed_out");
               await signOut();
             } catch (err) {
               console.error("Sign out error:", err);
